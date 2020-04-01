@@ -1,4 +1,4 @@
-## Iac for vault approle with terraform and gitlab as trusted entities
+## Iac for vault approle with terraform as a trusted entity
 
 order
 1. vault-node
@@ -6,9 +6,7 @@ order
 3. vault-bastion
     1. vault-provisioner
     2. app1-provisioner
-4. gitlab-node
-    1. app1-iac
+    3. app1-iac
 
 trusted entities
 1. terraform
-2. gitlab
