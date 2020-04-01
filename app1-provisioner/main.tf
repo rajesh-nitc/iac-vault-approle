@@ -3,18 +3,17 @@ provider "vault" {
   token = var.vault_token
 }
 
-# setup approle in vault
-resource "vault_auth_backend" "app1-approle" {
-  type = "approle"
+data "vault_auth_backend" "approle" {
+  path = "approle"
 }
 
+# app1
 resource "vault_approle_auth_backend_role" "app1-approle-role" {
-  backend   = "${vault_auth_backend.app1-approle.path}"
+  backend   = data.vault_auth_backend.approle.path
   role_name = "app1"
   token_policies  = ["app1-secret-read"]
 }
 
-# app1
 resource "vault_policy" "app1-secret-read" {
   name = "app1-secret-read"
 

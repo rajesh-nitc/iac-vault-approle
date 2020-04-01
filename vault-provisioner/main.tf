@@ -3,6 +3,11 @@ provider "vault" {
   token = var.vault_token
 }
 
+# setup approle in vault
+resource "vault_auth_backend" "approle" {
+  type = "approle"
+}
+
 # setup gcp credentails in vault
 resource "vault_gcp_secret_backend" "gcp" {
   path        = "gcp"
