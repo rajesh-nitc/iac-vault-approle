@@ -1,0 +1,6 @@
+#!/bin/bash
+
+sudo apt-get update
+sudo apt-get install apache2 -y
+echo -e "APP1ROLE_ROLEID=${role_id}" >> /etc/environment
+echo "<!doctype html><html><body><h1>APPROLE_ROLEID=${role_id}</h1></body></html>" | sudo tee /var/www/html/index.html

@@ -1,0 +1,114 @@
+#!/bin/bash
+
+set -e -o pipefail
+
+readonly SYSTEM_BIN_DIR="/usr/local/bin"
+readonly VAULT_HOME="/opt/vault"
+readonly USER="vault"
+export VAULT_ADDR="http://127.0.0.1:8200"
+DOWNLOAD_VAULT_URL="https://releases.hashicorp.com/vault/1.3.4/vault_1.3.4_linux_amd64.zip"
+apt-get update -y
+apt-get install -y unzip jq supervisor
+
+function create_user {
+  local readonly username="$1"
+
+  if [[ ! $(id ${username}) ]]; then
+    echo "Creating user named $username"
+    useradd "$username"
+  else
+    echo "User $username already exists"
+  fi
+}
+
+function create_dirs {
+  mkdir -p $VAULT_HOME/config $VAULT_HOME/bin $VAULT_HOME/logs $VAULT_HOME/rawpackage
+  chown -R $USER:$USER $VAULT_HOME
+}
+
+function download_package {
+  local readonly download_url="$1"
+  local readonly zip_name="$2"
+  cd $VAULT_HOME/rawpackage
+  curl -s "$download_url" -o "$zip_name.zip"
+}
+
+function install_binary {
+
+  local readonly install_path="$1"
+  local readonly binary_name="$2"
+  local readonly package_zip_path="$3"
+  local readonly username="$4"
+  local readonly bin_dir="$install_path/bin"
+  local readonly binary_dest_path="$bin_dir/$binary_name"
+
+  unzip -o -d /tmp "$package_zip_path"
+
+  mv "/tmp/$binary_name" "$binary_dest_path"
+  chown "$username:$username" "$binary_dest_path"
+  chmod a+x "$binary_dest_path"
+
+  local readonly symlink_path="$SYSTEM_BIN_DIR/$binary_name"
+  if [[ -f "$symlink_path" ]]; then
+    echo "Symlink $symlink_path already exists. Will not add again."
+  else
+    echo "Adding symlink to $binary_dest_path in $symlink_path"
+    ln -s "$binary_dest_path" "$symlink_path"
+  fi
+}
+
+function generate_config_vault {
+  tee $VAULT_HOME/config/config.hcl <<EOF
+storage "file" {
+  path = "/opt/vault"
+}
+
+listener "tcp" {
+ address = "127.0.0.1:8200"
+ tls_disable = 1
+}
+
+ui = true
+disable_mlock = true
+EOF
+
+chown -R $USER:$USER $VAULT_HOME/config/config.hcl
+}
+
+function set_local_ip {
+  local_ip=$(hostname -i)
+  sed -i "s/127.0.0.1:8200/$local_ip:8200/g" $VAULT_HOME/config/config.hcl
+}
+
+function generate_config_supervisor {
+  local readonly supervisor_config_path="$1"
+  local readonly vault_config_dir="$2"
+  local readonly vault_bin_dir="$3"
+  local readonly vault_log_dir="$4"
+  local readonly user="$5"
+  cat > "$supervisor_config_path" <<EOF
+[program:vault]
+command=$vault_bin_dir/vault server -config $vault_config_dir/config.hcl
+stdout_logfile=$vault_log_dir/vault-stdout.log
+stderr_logfile=$vault_log_dir/vault-error.log
+numprocs=1
+autostart=true
+autorestart=true
+stopsignal=INT
+user=$user
+EOF
+}
+
+function start_vault {
+  supervisorctl reread
+  supervisorctl update
+}
+
+create_user "$USER"
+create_dirs
+download_package "$DOWNLOAD_VAULT_URL" "vault"
+install_binary "$VAULT_HOME" "vault" "$VAULT_HOME/rawpackage/vault.zip" "$USER"
+generate_config_vault
+set_local_ip
+generate_config_supervisor "/etc/supervisor/conf.d/vault.conf" "$VAULT_HOME/config" "$VAULT_HOME/bin" "$VAULT_HOME/logs" "$USER"
+start_vault
