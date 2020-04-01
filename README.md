@@ -8,5 +8,5 @@ order
 5. app1-iac
 
 trusted entities
-1. terraform: role_id
-2. gitlab: secret_id
+1. terraform-role_id
+2. gitlab-secret_id
