@@ -8,5 +8,5 @@ order
     2. app1-provisioner
     3. app1-iac
 
-trusted entities
+trusted entity
 1. terraform
