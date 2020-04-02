@@ -36,8 +36,7 @@ resource "google_compute_instance" "default" {
   }
 
   metadata_startup_script = templatefile("templates/startup-script.tmpl", {
-    role_id = data.vault_approle_auth_backend_role_id.role.role_id
-    secret_id = var.secret_id
+    vault_addr = var.vault_address
     vault_token = vault_approle_auth_backend_login.login.client_token
   })
 
@@ -48,7 +47,7 @@ resource "google_compute_instance" "default" {
     }
   }
 
-  tags = ["http-server"]
+  tags = ["app1"]
 }
 
 resource "google_compute_firewall" "app1" {
@@ -61,5 +60,5 @@ resource "google_compute_firewall" "app1" {
   }
 
   source_ranges = ["0.0.0.0/0"]
-  target_tags   = ["http-server"]
+  target_tags   = ["app1"]
 }

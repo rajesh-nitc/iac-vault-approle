@@ -11,7 +11,7 @@ provider "google-beta" {
 }
 
 resource "google_compute_instance" "default" {
-  name         = "vault"
+  name         = "vault-node"
   machine_type = "f1-micro"
   zone         = "asia-south1-a"
 
@@ -32,11 +32,11 @@ resource "google_compute_instance" "default" {
     }
   }
 
-  tags = ["vault"]
+  tags = ["vault-node"]
 }
 
 resource "google_compute_firewall" "http-server" {
-  name    = "vault"
+  name    = "vault-node"
   network = "default"
 
   allow {
@@ -45,5 +45,5 @@ resource "google_compute_firewall" "http-server" {
   }
 
   source_ranges = ["0.0.0.0/0"]
-  target_tags   = ["vault"]
+  target_tags   = ["vault-node"]
 }
