@@ -7,11 +7,16 @@ data "vault_auth_backend" "approle" {
   path = "approle"
 }
 
-# app1
-resource "vault_approle_auth_backend_role" "app1-approle-role" {
+# App1
+resource "vault_approle_auth_backend_role" "example" {
   backend   = data.vault_auth_backend.approle.path
   role_name = "app1"
   token_policies  = ["app1-secret-read"]
+}
+
+resource "vault_approle_auth_backend_role_secret_id" "id" {
+  backend   = data.vault_auth_backend.approle.path
+  role_name = vault_approle_auth_backend_role.example.role_name
 }
 
 resource "vault_policy" "app1-secret-read" {
@@ -35,6 +40,16 @@ path "auth/approle/role/app1/role-id" {
 EOT
 }
 
+resource "vault_policy" "perform-login" {
+  name = "perform-login"
+
+  policy = <<EOT
+path "auth/approle/login" {
+  capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+}
+EOT
+}
+
 resource "vault_policy" "gcp-token-get" {
   name = "gcp-token-get"
 
@@ -52,11 +67,19 @@ resource "vault_policy" "terraform-token-create" {
 path "auth/token/create" {
   capabilities = [ "update" ]
 }
+
+path "auth/token/lookup-accessor" {
+  capabilities = ["update"]
+}
+
+path "auth/token/revoke-accessor" {
+  capabilities = ["update"]
+}
 EOT
 }
 
-resource "vault_token" "terraform-token" {
-  policies = ["app1-approle-roleid-get", "terraform-token-create", "gcp-token-get"]
+resource "vault_token" "terraform_token" {
+  policies = ["app1-approle-roleid-get", "terraform-token-create", "gcp-token-get", "perform-login"]
 
   renewable = true
   ttl = "24h"
@@ -76,7 +99,7 @@ path "auth/approle/role/app1/secret-id" {
 EOT
 }
 
-resource "vault_token" "gitlab-token" {
+resource "vault_token" "gitlab_token" {
   policies = ["app1-approle-secretid-create"]
 
   renewable = true

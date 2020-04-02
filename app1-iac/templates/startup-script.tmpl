@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sudo apt-get update
-sudo apt-get install apache2 -y
-echo -e "APP1ROLE_ROLEID=${role_id}" >> /etc/environment
-echo "<!doctype html><html><body><h1>APP1ROLE_ROLEID=${role_id}</h1></body></html>" | sudo tee /var/www/html/index.html
+sudo apt-get update -y
+sudo apt-get install -y apache2
+echo -e "VAULT_TOKEN=${vault_token}" >> /etc/environment
+echo "<!doctype html><html><body><h1>ROLE_ID=${role_id}<br>SECRET_ID=${secret_id}<br>VAULT_TOKEN=${vault_token}</h1></body></html>" | sudo tee /var/www/html/index.html

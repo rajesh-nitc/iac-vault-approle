@@ -1,10 +1,12 @@
 provider "google" {
   version     = "~> 2.1"
+  credentials = file("../tf-sa.json")
   project     = var.project_id
 }
 
 provider "google-beta" {
   version     = "~> 2.1"
+  credentials = file("../tf-sa.json")
   project     = var.project_id
 }
 

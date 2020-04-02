@@ -13,7 +13,12 @@ data "vault_approle_auth_backend_role_id" "role" {
   role_name = "app1"
 }
 
-# Initialize with tf token which can only read app1 roleid
+resource "vault_approle_auth_backend_login" "login" {
+  backend   = "approle"
+  role_id   = data.vault_approle_auth_backend_role_id.role.role_id
+  secret_id = var.secret_id
+}
+
 provider "vault" {
   address = var.vault_address
   token = var.terraform_token
@@ -32,6 +37,8 @@ resource "google_compute_instance" "default" {
 
   metadata_startup_script = templatefile("templates/startup-script.tmpl", {
     role_id = data.vault_approle_auth_backend_role_id.role.role_id
+    secret_id = var.secret_id
+    vault_token = vault_approle_auth_backend_login.login.client_token
   })
 
   network_interface {
@@ -44,8 +51,8 @@ resource "google_compute_instance" "default" {
   tags = ["http-server"]
 }
 
-resource "google_compute_firewall" "http-server" {
-  name    = "default-allow-http-app1"
+resource "google_compute_firewall" "app1" {
+  name    = "app1"
   network = "default"
 
   allow {

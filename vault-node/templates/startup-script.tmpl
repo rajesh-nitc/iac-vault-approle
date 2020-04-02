@@ -5,15 +5,14 @@ set -e -o pipefail
 readonly SYSTEM_BIN_DIR="/usr/local/bin"
 readonly VAULT_HOME="/opt/vault"
 readonly USER="vault"
-export VAULT_ADDR="http://127.0.0.1:8200"
 DOWNLOAD_VAULT_URL="https://releases.hashicorp.com/vault/1.3.4/vault_1.3.4_linux_amd64.zip"
 apt-get update -y
-apt-get install -y unzip jq supervisor
+apt-get install -y unzip supervisor
 
 function create_user {
   local readonly username="$1"
 
-  if [[ ! $(id ${username}) ]]; then
+  if [[ ! $(id $username) ]]; then
     echo "Creating user named $username"
     useradd "$username"
   else
@@ -43,7 +42,6 @@ function install_binary {
   local readonly binary_dest_path="$bin_dir/$binary_name"
 
   unzip -o -d /tmp "$package_zip_path"
-
   mv "/tmp/$binary_name" "$binary_dest_path"
   chown "$username:$username" "$binary_dest_path"
   chmod a+x "$binary_dest_path"
