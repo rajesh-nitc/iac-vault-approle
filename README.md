@@ -1,6 +1,7 @@
-## Iac for vault approle with terraform and gitlab as trusted entities
+# Iac
+Iac for vault approle with terraform and gitlab as trusted entities
+## Order
 
-order
 1. vault-node
     1. unseal-manually
 2. vault-bastion
