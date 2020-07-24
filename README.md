@@ -1,5 +1,5 @@
 # Iac
-Iac for vault approle with terraform and gitlab as trusted entities
+Iac for vault approle with terraform and gitlab as trusted entities. Manage secrets for app1, app2 .... appn.
 ## Order
 
 1. vault-node
